@@ -2,7 +2,8 @@
 import {useEffect,useState,type FormEvent} from 'react';
 import {getSupabase} from '@/lib/supabase';
 type Repair={id:string;ticket_number:string;customer_name:string;phone:string;device_model:string;issue_description:string;status:string;diagnosis:string|null;repair_possible:boolean|null;estimated_price:number|null;created_at:string};
-type Product={id:string;name_ar:string;price:number;stock_quantity:number;is_active:boolean};\ntype Order={id:string;order_number:string;customer_name:string;phone:string;delivery_address:string;notes:string|null;total_amount:number;status:string;created_at:string};
+type Product={id:string;name_ar:string;price:number;stock_quantity:number;is_active:boolean};
+type Order={id:string;order_number:string;customer_name:string;phone:string;delivery_address:string;notes:string|null;total_amount:number;status:string;created_at:string};
 const statuses=['تم الاستلام','تحت الصيانة','تم التصليح','تم التسليم'];
 export default function Admin(){
  const [ready,setReady]=useState(false),[user,setUser]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[repairs,setRepairs]=useState<Repair[]>([]),[products,setProducts]=useState<Product[]>([]),[orders,setOrders]=useState<Order[]>([]),[tab,setTab]=useState<'repairs'|'products'|'orders'>('repairs');
