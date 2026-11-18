@@ -4,6 +4,6 @@ export function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error('إعدادات الاتصال بقاعدة البيانات غير مكتملة.');
-  if (!client) client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (!client) client = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } });
   return client;
 }
