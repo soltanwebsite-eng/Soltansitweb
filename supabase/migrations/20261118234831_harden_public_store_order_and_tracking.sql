@@ -72,5 +72,22 @@ end;
 $function$;
 revoke all on function public.place_store_order(text,text,text,text,jsonb) from public, authenticated;
 grant execute on function public.place_store_order(text,text,text,text,jsonb) to anon;
+create or replace function public.track_repair(p_ticket text, p_phone text)
+returns jsonb
+language sql
+security definer
+set search_path = pg_catalog, public
+as $function$
+ select jsonb_build_object(
+  'ticket_number',r.ticket_number,'device_type',r.device_type,'device_model',r.device_model,
+  'status',r.status,'created_at',r.created_at,
+  'history',coalesce((select jsonb_agg(jsonb_build_object('new_status',h.new_status,'note',h.note,'created_at',h.created_at) order by h.created_at)
+    from public.repair_status_history h where h.repair_id=r.id),'[]'::jsonb))
+ from public.repairs r
+ where upper(r.ticket_number)=upper(trim(p_ticket))
+ and regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g')
+   = regexp_replace(translate(coalesce(p_phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g')
+ limit 1;
+$function$;
 revoke all on function public.track_repair(text,text) from public, authenticated;
 grant execute on function public.track_repair(text,text) to anon, authenticated;
