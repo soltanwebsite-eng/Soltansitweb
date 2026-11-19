@@ -41,3 +41,5 @@
   .two { grid-template-columns: minmax(0, 1fr); }
   .cartline { flex-wrap: wrap; }
 }
+
+.logo{overflow:hidden}.logo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:50%}.hero-symbol{display:grid;place-items:center}.hero-symbol img{width:min(72%,260px);height:auto;max-height:260px;object-fit:contain;z-index:2;filter:drop-shadow(0 10px 28px #0009)}
