@@ -78,16 +78,53 @@ language sql
 security definer
 set search_path = pg_catalog, public
 as $function$
- select jsonb_build_object(
-  'ticket_number',r.ticket_number,'device_type',r.device_type,'device_model',r.device_model,
-  'status',r.status,'created_at',r.created_at,
-  'history',coalesce((select jsonb_agg(jsonb_build_object('new_status',h.new_status,'note',h.note,'created_at',h.created_at) order by h.created_at)
-    from public.repair_status_history h where h.repair_id=r.id),'[]'::jsonb))
- from public.repairs r
- where upper(r.ticket_number)=upper(trim(p_ticket))
- and regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g')
-   = regexp_replace(translate(coalesce(p_phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g')
- limit 1;
+with supplied as (
+  select
+    upper(regexp_replace(btrim(coalesce(p_ticket,'')), '[[:space:]]+', '', 'g')) as ticket,
+    regexp_replace(
+      translate(coalesce(p_phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),
+      '[^0-9]','','g'
+    ) as raw_phone
+), normalized as (
+  select ticket,
+    case
+      when raw_phone like '00213%' then substr(raw_phone, 6)
+      when raw_phone like '213%' then substr(raw_phone, 4)
+      when raw_phone like '0%' then substr(raw_phone, 2)
+      else raw_phone
+    end as phone
+  from supplied
+)
+select jsonb_build_object(
+  'ticket_number', r.ticket_number,
+  'device_type', r.device_type,
+  'device_model', r.device_model,
+  'status', r.status,
+  'created_at', r.created_at,
+  'history', coalesce((
+    select jsonb_agg(
+      jsonb_build_object('new_status', h.new_status, 'note', h.note, 'created_at', h.created_at)
+      order by h.created_at
+    )
+    from public.repair_status_history h
+    where h.repair_id = r.id
+  ), '[]'::jsonb)
+)
+from public.repairs r
+cross join normalized n
+where upper(regexp_replace(btrim(r.ticket_number), '[[:space:]]+', '', 'g')) = n.ticket
+  and (
+    case
+      when regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g') like '00213%'
+        then substr(regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g'), 6)
+      when regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g') like '213%'
+        then substr(regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g'), 4)
+      when regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g') like '0%'
+        then substr(regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g'), 2)
+      else regexp_replace(translate(coalesce(r.phone,''),'٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹','01234567890123456789'),'[^0-9]','','g')
+    end
+  ) = n.phone
+limit 1;
 $function$;
-revoke all on function public.track_repair(text,text) from public, authenticated;
+revoke all on function public.track_repair(text,text) from public;
 grant execute on function public.track_repair(text,text) to anon, authenticated;
