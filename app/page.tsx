@@ -4,7 +4,7 @@ import { getSupabase } from '@/lib/supabase';
 type Product={id:string;name_ar:string;description_ar:string|null;category:string|null;price:number;stock_quantity:number;image_path:string|null};
 type Track={ticket_number:string;device_model:string;status:string;created_at:string;history?:{new_status:string;note?:string;created_at:string}[]};
 const FB='https://www.facebook.com/profile.php?id=61596877222106';
-const EMAIL='soltanphene03@gmail.com';
+const EMAIL='soltanphene3@gmail.com';
 const PHONE1='+213659898520';
 const PHONE2='+213562408773';
 const WA1='https://wa.me/213659898520';
