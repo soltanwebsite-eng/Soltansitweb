@@ -73,4 +73,4 @@ $function$;
 revoke all on function public.place_store_order(text,text,text,text,jsonb) from public, authenticated;
 grant execute on function public.place_store_order(text,text,text,text,jsonb) to anon;
 revoke all on function public.track_repair(text,text) from public, authenticated;
-grant execute on function public.track_repair(text,text) to anon;
+grant execute on function public.track_repair(text,text) to anon, authenticated;
